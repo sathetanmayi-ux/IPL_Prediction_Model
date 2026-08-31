@@ -3,7 +3,6 @@ import os
 import sys
 from pathlib import Path
 
-os.environ.setdefault("KERAS_BACKEND", "tensorflow")
 sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
@@ -38,7 +37,7 @@ st.markdown(
             🏏 IPL Prediction Model
         </h1>
         <p style="color:#e0e0e0; font-size:1.3rem; margin:0; letter-spacing:1px;">
-            2008–2026 &nbsp;·&nbsp; {n_matches:,} Matches &nbsp;·&nbsp; 30 Algorithms
+            2008–2026 &nbsp;·&nbsp; {n_matches:,} Matches &nbsp;·&nbsp; 25 Algorithms
         </p>
     </div>
     """,
@@ -54,9 +53,9 @@ with c1:
 with c2:
     st.metric("🏟️ Matches", f"{n_matches:,}", help="Total IPL matches in processed dataset")
 with c3:
-    st.metric("🤖 Algorithms", "30", help="ML, Deep Learning, clustering & analytics algorithms")
+    st.metric("🤖 Algorithms", "25", help="ML, clustering & analytics algorithms")
 with c4:
-    st.metric("🧠 Analytics", "ML + DL + Elo", help="Prediction, Deep Learning, Elo ratings & clustering workflows")
+    st.metric("🧠 Analytics", "ML + Elo", help="Prediction, Elo ratings & clustering workflows")
 
 st.divider()
 
@@ -71,7 +70,6 @@ pages = [
     ("🎯", "Match Prediction", "11 classifiers · win probability · SHAP · ROC-AUC · confusion matrix"),
     ("📈", "Score Prediction", "4 regressors (Linear · Ridge · Lasso · XGB) · over-by-over forecast"),
     ("👤", "Player Analytics", "Elo ratings · KMeans/DBSCAN clusters · PCA scatter plot"),
-    ("🧠", "Deep Learning",    "5 DL architectures (LSTM · GRU · Transformer · 1D CNN · Autoencoder)"),
     ("🏆", "Team Optimizer",   "Best XI selector · simulate tournament brackets"),
     ("🔬", "Algo Lab",         "Live hyperparameter tuning · GridSearch · RandomSearch · cross-val"),
 ]
@@ -93,9 +91,9 @@ st.divider()
 # ---------------------------------------------------------------------------
 # Algorithm coverage
 # ---------------------------------------------------------------------------
-st.subheader("📋 Algorithm Coverage (30 Total)")
+st.subheader("📋 Algorithm Coverage (25 Total)")
 
-algo_cols = st.columns(4)
+algo_cols = st.columns(3)
 
 with algo_cols[0]:
     st.markdown(
@@ -124,18 +122,6 @@ with algo_cols[0]:
 with algo_cols[1]:
     st.markdown(
         """
-        **Deep Learning (5)**
-        - LSTM Network
-        - GRU Sequence Model
-        - Transformer Encoder
-        - 1D CNN Classifier
-        - Autoencoder Model
-        """
-    )
-
-with algo_cols[2]:
-    st.markdown(
-        """
         **Clustering (3)**
         - K-Means (k=6)
         - DBSCAN
@@ -143,7 +129,7 @@ with algo_cols[2]:
         """
     )
 
-with algo_cols[3]:
+with algo_cols[2]:
     st.markdown(
         """
         **Analytics & Optimization (7)**
@@ -159,7 +145,6 @@ with algo_cols[3]:
 
 st.divider()
 st.caption(
-    "Built with Streamlit · scikit-learn · XGBoost · TensorFlow/Keras · Plotly · SHAP  "
+    "Built with Streamlit · scikit-learn · XGBoost · Plotly · SHAP  "
     "| Data: IPL 2008–2026"
 )
-

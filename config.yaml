@@ -44,55 +44,9 @@ models:
   ridge_alphas: [0.01, 0.1, 1, 10, 100]
   lasso_alphas: [0.001, 0.01, 0.1, 1, 10]
 
-deep_learning:
-  seq_len: 20
-  n_seq_features: 5
-  lstm:
-    units_1: 128
-    units_2: 64
-    dropout: 0.3
-    dense_units: 32
-    lr: 0.001
-    epochs: 30
-    batch_size: 64
-  gru:
-    units_1: 128
-    units_2: 64
-    dropout: 0.3
-    dense_units: 32
-    lr: 0.001
-    epochs: 30
-    batch_size: 64
-  transformer:
-    d_model: 64
-    num_heads: 4
-    num_layers: 2
-    dff: 128
-    dropout: 0.1
-    lr: 0.001
-    epochs: 30
-    batch_size: 64
-  cnn:
-    filters_1: 64
-    filters_2: 128
-    kernel_size: 3
-    dropout: 0.3
-    dense_units: 64
-    lr: 0.001
-    epochs: 30
-    batch_size: 64
-  autoencoder:
-    encoding_dim: 32
-    hidden_dim: 64
-    dropout: 0.2
-    lr: 0.001
-    epochs: 50
-    batch_size: 64
-
 ui:
   primary_color: "#1F3864"
   accent_color: "#FF6B00"
-  dl_accent: "#7C3AED"
   chart_height: 400
 
 cv_folds: 5

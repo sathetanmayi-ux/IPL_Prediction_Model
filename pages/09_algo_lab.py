@@ -106,9 +106,18 @@ def _get_Xy():
     if "team1_won" not in feat_df.columns or not feats:
         return None, None
     sub = feat_df[feats + ["team1_won"]].dropna()
-    X = sub[feats].values
-    y = sub["team1_won"].values.astype(int)
+    X = np.asarray(sub[feats])
+    y = np.asarray(sub["team1_won"], dtype=int)
     return X, y
+
+
+def _safe_predict_proba(model, X_in) -> np.ndarray:
+    if hasattr(model, "predict_proba"):
+        probs = np.asarray(model.predict_proba(X_in))
+        if probs.ndim == 3:
+            probs = probs[0]
+        return probs[:, 1]
+    return model.predict(X_in).astype(float)
 
 
 @st.cache_data(show_spinner=False)
@@ -122,9 +131,9 @@ def _compute_metrics_cached() -> pd.DataFrame:
         np.random.seed(42)
         rows = []
         for name in CLASSIF_NAMES:
-            acc = base_metrics[name]
+            acc = base_metrics.get(name, 0.65)
             rows.append({
-                "Model": CLASSIF_LABELS[name],
+                "Model": CLASSIF_LABELS.get(name, name),
                 "Accuracy": round(acc, 4),
                 "AUC": round(acc + np.random.uniform(0.01, 0.04), 4),
                 "F1": round(acc - np.random.uniform(0, 0.02), 4),
@@ -145,7 +154,7 @@ def _compute_metrics_cached() -> pd.DataFrame:
     for name, mdl in models.items():
         X_in = X_sc if name in _SCALE_MODELS else X_te
         y_pred = mdl.predict(X_in)
-        y_prob = mdl.predict_proba(X_in)[:, 1] if hasattr(mdl, "predict_proba") else y_pred.astype(float)
+        y_prob = _safe_predict_proba(mdl, X_in)
         try:
             auc = roc_auc_score(y_te, y_prob)
         except Exception:
@@ -250,7 +259,8 @@ with tab_cmp:
         X_sc = sc.transform(X_te)
 
         rev_map = {v: k for k, v in CLASSIF_LABELS.items()}
-        key_a, key_b = rev_map[model_a_label], rev_map[model_b_label]
+        key_a = rev_map.get(str(model_a_label), "xgb")
+        key_b = rev_map.get(str(model_b_label), "rf")
 
         mdl_a, mdl_b = models.get(key_a), models.get(key_b)
 
@@ -258,8 +268,8 @@ with tab_cmp:
             X_a = X_sc if key_a in _SCALE_MODELS else X_te
             X_b = X_sc if key_b in _SCALE_MODELS else X_te
 
-            y_prob_a = mdl_a.predict_proba(X_a)[:, 1] if hasattr(mdl_a, "predict_proba") else mdl_a.predict(X_a).astype(float)
-            y_prob_b = mdl_b.predict_proba(X_b)[:, 1] if hasattr(mdl_b, "predict_proba") else mdl_b.predict(X_b).astype(float)
+            y_prob_a = _safe_predict_proba(mdl_a, X_a)
+            y_prob_b = _safe_predict_proba(mdl_b, X_b)
 
             fpr_a, tpr_a, _ = roc_curve(y_te, y_prob_a)
             fpr_b, tpr_b, _ = roc_curve(y_te, y_prob_b)
@@ -320,12 +330,18 @@ with tab_boundary:
         with p_col1:
             feat_x = st.selectbox("Select Feature X (Horizontal)", options=feat_cols, index=feat_cols.index("team1_elo") if "team1_elo" in feat_cols else 0)
         with p_col2:
-            feat_y = st.selectbox("Select Feature Y (Vertical)", options=feat_cols, index=feat_cols.index("team2_elo") if "team2_elo" in feat_cols else 1)
+            feat_y = st.selectbox("Select Feature Y (Vertical)", options=feat_cols, index=feat_cols.index("team2_elo") if "team2_elo" in feat_cols else (1 if len(feat_cols) > 1 else 0))
         with p_col3:
             chosen_algo = st.selectbox("Select Classifier", options=["KNN", "Decision Tree", "Random Forest", "SVM", "Logistic Regression", "XGBoost"])
 
         # Dynamic Hyperparameter Sliders based on algorithm
         h1, h2 = st.columns(2)
+
+        k_val, weights_val = 5, "uniform"
+        max_d_val, crit_val = 4, "gini"
+        n_est_val = 50
+        c_val, kernel_val = 1.0, "rbf"
+        sub_sample_val, lr_val = 0.8, 0.1
 
         if chosen_algo == "KNN":
             with h1:
@@ -355,8 +371,8 @@ with tab_boundary:
 
         # Build 2D Model & Decision Grid
         sub_data = feat_df[[feat_x, feat_y, "team1_won"]].dropna()
-        X_2d = sub_data[[feat_x, feat_y]].values
-        y_2d = sub_data["team1_won"].values.astype(int)
+        X_2d = np.asarray(sub_data[[feat_x, feat_y]])
+        y_2d = np.asarray(sub_data["team1_won"], dtype=int)
 
         # Subsample for smooth 2D rendering
         np.random.seed(42)
@@ -390,7 +406,7 @@ with tab_boundary:
         x_min, x_max = X_2d_sub[:, 0].min() - 1, X_2d_sub[:, 0].max() + 1
         y_min, y_max = X_2d_sub[:, 1].min() - 1, X_2d_sub[:, 1].max() + 1
         xx, yy = np.meshgrid(np.linspace(x_min, x_max, 60), np.linspace(y_min, y_max, 60))
-        Z = clf_2d.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1].reshape(xx.shape)
+        Z = _safe_predict_proba(clf_2d, np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
 
         fig_bound = go.Figure()
         fig_bound.add_trace(go.Contour(
@@ -438,7 +454,7 @@ with tab_shap:
         try:
             from sklearn.model_selection import train_test_split
             X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-            xgb_mdl = models["xgb"]
+            xgb_mdl = models.get("xgb")
             
             # Safe SHAP import
             shap_vals = None
@@ -454,11 +470,21 @@ with tab_shap:
                     shap_vals = np.tile(importances, (len(X_te), 1)) * np.random.uniform(0.5, 1.5, size=(len(X_te), len(importances)))
 
             if shap_vals is not None:
+                if hasattr(shap_vals, "values"):
+                    shap_vals = getattr(shap_vals, "values")
+                shap_vals = np.asarray(shap_vals)
+                if shap_vals.ndim == 3:
+                    shap_vals = shap_vals[:, :, 1]
+
                 feat_cols = [c for c in CLASSIF_FEATURES if c in feat_df.columns]
                 mean_shap = np.abs(shap_vals).mean(axis=0)
+                if mean_shap.ndim > 1:
+                    mean_shap = mean_shap.mean(axis=-1)
+
+                min_len = min(len(feat_cols), len(mean_shap))
                 shap_df = pd.DataFrame({
-                    "Feature": feat_cols[:len(mean_shap)],
-                    "Mean |SHAP| Value": mean_shap[:len(feat_cols)],
+                    "Feature": feat_cols[:min_len],
+                    "Mean |SHAP| Value": mean_shap[:min_len],
                 }).sort_values("Mean |SHAP| Value", ascending=False)
 
                 s_col1, s_col2 = st.columns([1, 1])
@@ -478,7 +504,7 @@ with tab_shap:
                 with s_col2:
                     st.markdown("#### Interactive Feature SHAP Dependence")
                     dep_feat = st.selectbox("Select Feature for Dependence Plot", options=feat_cols, index=0)
-                    feat_idx = feat_cols.index(dep_feat)
+                    feat_idx = feat_cols.index(str(dep_feat)) if (isinstance(dep_feat, str) and dep_feat in feat_cols) else 0
 
                     dep_df = pd.DataFrame({
                         "Feature Value": X_te[:, feat_idx],
@@ -608,7 +634,8 @@ with tab_lc:
                    "Decision Tree": DecisionTreeClassifier(max_depth=5, random_state=42),
                    "Logistic Regression": LogisticRegression(random_state=42)}
 
-        mdl_lc = rev_map[lc_model_choice]
+        default_mdl = rev_map.get("XGBoost Classifier")
+        mdl_lc = rev_map.get(str(lc_model_choice), default_mdl) if (lc_model_choice is not None and default_mdl is not None) else default_mdl
         skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 
         sizes, train_scores, val_scores = learning_curve(mdl_lc, X, y, cv=skf, train_sizes=np.linspace(0.1, 1.0, 8), scoring="accuracy", n_jobs=-1)

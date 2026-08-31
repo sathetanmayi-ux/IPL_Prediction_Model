@@ -32,8 +32,6 @@ warnings.filterwarnings("ignore")
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-os.environ.setdefault("KERAS_BACKEND", "tensorflow")
-
 import numpy as np
 import pandas as pd
 import joblib
@@ -234,7 +232,7 @@ def main() -> None:
         log.info("\nSHAP Feature Importance (XGBoost):\n" + shap_summary.to_string(index=False))
     except Exception as exc:
         log.warning(f"SHAP step skipped: {exc}")
-log.info(f"STEP 7 done in {_elapsed(t)}")
+        log.info(f"STEP 7 done in {_elapsed(t)}")
 
     # -----------------------------------------------------------------------
     # Final summary

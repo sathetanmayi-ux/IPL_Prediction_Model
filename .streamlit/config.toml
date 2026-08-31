@@ -5,3 +5,8 @@ backgroundColor = "#0F1117"
 secondaryBackgroundColor = "#1A1D2E"
 textColor = "#E8EDF5"
 font = "sans serif"
+
+[server]
+headless = true
+port = 8501
+fileWatcherType = "none"
