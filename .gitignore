@@ -48,7 +48,6 @@ htmlcov/
 # -----------------------------------------------------------------------------
 # 3. Large Datasets (IPL.csv is 110MB - exceeds GitHub 100MB limit)
 # -----------------------------------------------------------------------------
-IPL.csv
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*.parquet
