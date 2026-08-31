@@ -105,13 +105,12 @@ else:
 st.divider()
 
 # ---------------------------------------------------------------------------
-# FR-1.3: IPL champions by year
+# FR-1.3: Season Top Teams (Most Match Wins per Season)
 # ---------------------------------------------------------------------------
-st.subheader("🏆 IPL Champions by Year")
+st.subheader("🏆 Season Top Teams (Most Match Wins per Season)")
 
 if "winner" in df.columns and "season" in df.columns:
-    # Take the team with the most wins per season as champion proxy
-    champions = (
+    season_top = (
         df[df["winner"].notna()]
         .groupby(["season", "winner"])
         .size()
@@ -119,42 +118,14 @@ if "winner" in df.columns and "season" in df.columns:
         .sort_values(["season", "wins"], ascending=[True, False])
         .drop_duplicates("season")
         .sort_values("season")
-        .rename(columns={"winner": "Champion"})
+        .rename(columns={"season": "Season", "winner": "Top Team", "wins": "Match Wins"})
     )
 
-    # Display as a styled table
-    champ_cols = st.columns([2, 1])
-    with champ_cols[0]:
-        st.dataframe(
-            champions[["season", "Champion", "wins"]].rename(
-                columns={"season": "Season", "wins": "Match Wins"}
-            ),
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    with champ_cols[1]:
-        # Most successful teams
-        title_counts = champions["Champion"].value_counts().reset_index()
-        title_counts.columns = ["Team", "Titles"]
-        fig_titles = px.bar(
-            title_counts,
-            x="Titles",
-            y="Team",
-            orientation="h",
-            color="Titles",
-            color_continuous_scale=[[0, IPL_THEME["purple"]], [1, IPL_THEME["orange"]]],
-            title="Most IPL Titles",
-        )
-        fig_titles.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            font_color="#e0e0e0",
-            coloraxis_showscale=False,
-            yaxis=dict(autorange="reversed"),
-            height=380,
-        )
-        st.plotly_chart(fig_titles, use_container_width=True)
+    st.dataframe(
+        season_top,
+        use_container_width=True,
+        hide_index=True,
+    )
 else:
     st.info("Winner or season column not found in features.parquet.")
 
