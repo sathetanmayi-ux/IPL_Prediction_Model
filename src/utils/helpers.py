@@ -2,6 +2,23 @@ from pathlib import Path
 import joblib
 import streamlit as st
 
+try:
+    from xgboost import XGBClassifier, XGBRegressor
+    if hasattr(XGBClassifier, "__sklearn_tags__"):
+        def _xgb_clf_tags(self):
+            tags = super(XGBClassifier, self).__sklearn_tags__()
+            tags.estimator_type = "classifier"
+            return tags
+        XGBClassifier.__sklearn_tags__ = _xgb_clf_tags
+    if hasattr(XGBRegressor, "__sklearn_tags__"):
+        def _xgb_reg_tags(self):
+            tags = super(XGBRegressor, self).__sklearn_tags__()
+            tags.estimator_type = "regressor"
+            return tags
+        XGBRegressor.__sklearn_tags__ = _xgb_reg_tags
+except ImportError:
+    pass
+
 
 def get_project_root() -> Path:
     """Return the project root (3 levels up from src/utils/)."""
@@ -11,13 +28,28 @@ def get_project_root() -> Path:
 def apply_theme() -> str:
     """Return CSS string for the dark IPL theme."""
     css = """
-    <style>
+        <style>
+    /* Import premium font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
     /* ── App background ── */
-    .stApp {
+    body, .stApp {
         background-color: #0F1117;
         color: #E8EDF5;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.08rem !important;
     }
 
+    /* ── Main Container Width ── */
+    .block-container, 
+    div[data-testid="stAppViewBlockContainer"], 
+    div[data-testid="block-container"],
+    .stMainBlockContainer {
+        max-width: 1350px !important;
+    }
+    div[data-testid="stMainBlockContainer"] {
+        max-width: 1350px !important;
+    }
     /* ── Sidebar ── */
     section[data-testid="stSidebar"] {
         background-color: #1A1D2E;
@@ -31,9 +63,12 @@ def apply_theme() -> str:
     }
 
     /* ── Page headers ── */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', 'Inter', sans-serif !important;
+    }
     h1 {
         color: #FF6B00 !important;
-        font-size: 2.1rem !important;
+        font-size: 2.8rem !important;
         font-weight: 800 !important;
         letter-spacing: 0.5px;
         border-bottom: 3px solid #1F3864;
@@ -42,13 +77,17 @@ def apply_theme() -> str:
     }
     h2 {
         color: #FF6B00 !important;
-        font-size: 1.5rem !important;
+        font-size: 2.1rem !important;
         font-weight: 700 !important;
     }
     h3 {
         color: #C0D0E8 !important;
-        font-size: 1.15rem !important;
+        font-size: 1.6rem !important;
         font-weight: 600 !important;
+    }
+    h4 {
+        color: #FFFFFF !important;
+        font-size: 1.25rem !important;
     }
 
     /* ── Metric cards ── */
@@ -121,6 +160,14 @@ def apply_theme() -> str:
         border: 1px solid #1F3864;
         color: #E8EDF5;
     }
+    
+    /* Dropdown Menus Background Fix */
+    ul[role="listbox"], div[role="listbox"], div[data-baseweb="menu"], div[data-baseweb="popover"] > div {
+        background-color: #1A1D2E !important;
+    }
+    li[role="option"]:hover, div[role="option"]:hover, li[role="option"][aria-selected="true"], div[role="option"][aria-selected="true"] {
+        background-color: #1F3864 !important;
+    }
 
     /* ── Progress bar ── */
     .stProgress > div > div {
@@ -146,6 +193,44 @@ def apply_theme() -> str:
     details summary {
         color: #FF6B00 !important;
         font-weight: 600;
+    }
+    
+    /* ── Widget Labels & Text ── */
+    p, .stMarkdown p, .stMarkdown {
+        font-size: 1.08rem !important;
+        line-height: 1.6 !important;
+        color: #E8EDF5 !important;
+    }
+    div[data-testid="stWidgetLabel"] p, 
+    .stWidgetLabel p, 
+    label[data-testid="stWidgetLabel"],
+    div[data-testid="stWidgetLabel"] {
+        font-size: 1.15rem !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stRadio"] label p, 
+    div[data-testid="stCheckbox"] label p,
+    div[data-testid="stRadio"] label span,
+    div[data-baseweb="select"] p,
+    div[data-baseweb="select"] div,
+    div[data-baseweb="select"] span,
+    input {
+        font-size: 1.1rem !important;
+    }
+    div[role="listbox"] div,
+    div[role="option"] span,
+    div[role="option"] div,
+    ul[role="listbox"] li {
+        font-size: 1.08rem !important;
+    }
+    form label, form p {
+        font-size: 1.08rem !important;
+    }
+    div[data-testid="stCaptionContainer"], 
+    .stCaption, 
+    small,
+    div[data-testid="stNotificationContent"] p {
+        font-size: 0.95rem !important;
     }
     </style>
     """
@@ -214,4 +299,3 @@ def load_dataset_stats() -> dict:
         except Exception:
             pass
     return stats
-

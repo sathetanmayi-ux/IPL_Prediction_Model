@@ -8,7 +8,15 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+
 import streamlit as st
+st.set_page_config(
+    page_title="IPL Project",
+    page_icon="🏏",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -20,12 +28,7 @@ from src.utils.helpers import get_project_root, apply_theme
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
-st.set_page_config(
-    page_title="🔬 Algorithm Lab",
-    page_icon="🔬",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+
 st.markdown(apply_theme(), unsafe_allow_html=True)
 
 NAVY   = "#1F3864"

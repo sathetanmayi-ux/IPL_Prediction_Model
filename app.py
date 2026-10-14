@@ -5,15 +5,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-import streamlit as st
-from src.utils.helpers import apply_theme, load_dataset_stats
 
+import streamlit as st
 st.set_page_config(
-    page_title="IPL Prediction Model",
+    page_title="IPL Project",
     page_icon="🏏",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+from src.utils.helpers import apply_theme, load_dataset_stats
+
+
 st.markdown(apply_theme(), unsafe_allow_html=True)
 
 stats = load_dataset_stats()

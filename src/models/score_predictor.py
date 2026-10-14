@@ -6,6 +6,15 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso, RidgeCV, LassoC
 from sklearn.model_selection import cross_val_score, KFold, learning_curve
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from xgboost import XGBRegressor
+
+# Scikit-learn 1.6+ compatibility for XGBoost
+if hasattr(XGBRegressor, "__sklearn_tags__"):
+    def _xgb_reg_tags(self):
+        tags = super(XGBRegressor, self).__sklearn_tags__()
+        tags.estimator_type = "regressor"
+        return tags
+    XGBRegressor.__sklearn_tags__ = _xgb_reg_tags
+
 import warnings
 warnings.filterwarnings('ignore')
 

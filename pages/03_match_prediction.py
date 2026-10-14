@@ -6,7 +6,15 @@ import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+
 import streamlit as st
+st.set_page_config(
+    page_title="IPL Project",
+    page_icon="🏏",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -18,12 +26,7 @@ from src.utils.helpers import apply_theme, get_project_root, load_model_safe, ge
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
-st.set_page_config(
-    page_title="Match Prediction | IPL",
-    page_icon="🎯",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+
 st.markdown(apply_theme(), unsafe_allow_html=True)
 
 IPL_THEME = {"navy": "#1F3864", "orange": "#FF6B00", "purple": "#7C3AED"}

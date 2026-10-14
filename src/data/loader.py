@@ -62,6 +62,10 @@ def load_raw(cfg: dict) -> pd.DataFrame:
     """
     project_root = Path(__file__).parent.parent.parent
     raw_path = project_root / cfg["paths"]["raw_data"]
+    if not raw_path.exists():
+        fallback = project_root / "IPL.csv"
+        if fallback.exists():
+            raw_path = fallback
 
     df = pd.read_csv(raw_path, low_memory=False)
 

@@ -17,6 +17,15 @@ from sklearn.metrics import (accuracy_score, roc_auc_score, precision_score,
                               recall_score, f1_score, confusion_matrix,
                               classification_report, roc_curve)
 from xgboost import XGBClassifier
+
+# Scikit-learn 1.6+ compatibility for XGBoost
+if hasattr(XGBClassifier, "__sklearn_tags__"):
+    def _xgb_clf_tags(self):
+        tags = super(XGBClassifier, self).__sklearn_tags__()
+        tags.estimator_type = "classifier"
+        return tags
+    XGBClassifier.__sklearn_tags__ = _xgb_clf_tags
+
 try:
     import shap
 except Exception:
